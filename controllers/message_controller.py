@@ -18,3 +18,14 @@ def create_message(title, body, receiver_id):
 
 def get_user_messages():
     return current_user.recv_messages
+
+
+def get_unread_msg_count():
+    user = current_user
+    msg_count = 0
+
+    for msg in user.recv_messages:
+        if not msg.read:
+            msg_count += 1
+
+    return msg_count
