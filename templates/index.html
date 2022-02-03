@@ -1,0 +1,14 @@
+{% extends "base-template.html" %}
+
+{% block title %}
+    Main Page
+{% endblock %}
+
+{% block content %}
+    <h1>This is the start page</h1>
+    <p>This is a paragraph</p>
+    <p>This is a second one...</p>
+    <a href="https://dn.se">DN</a>
+    <br />
+    <img src="{{ url_for('static', filename='img/dog.jpg') }}" />
+{% endblock %}
