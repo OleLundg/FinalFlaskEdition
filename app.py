@@ -35,7 +35,6 @@ def create_app():
     from blueprints.admin import bp_admin
     app.register_blueprint(bp_admin)
 
-
     return app
 
 
