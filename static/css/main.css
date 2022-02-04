@@ -65,3 +65,9 @@ tr:nth-child(even) {
 .offline {
     background: crimson;
 }
+
+.sup {
+    position: relative;
+    bottom: 1ex;
+    font-size: 80%;
+}
