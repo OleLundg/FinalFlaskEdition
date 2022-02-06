@@ -9,17 +9,16 @@
     <p>Hello {{ current_user.name }}</p>
 
     <table>
-        <tr>
+        <tr class="header_user">
             <th>User Name</th>
             <th>User Email</th>
-            <th>Chat with</th>
             <th>Online</th>
         </tr>
         {% for user in users %}
             <tr>
                 <td><a href="{{ url_for('bp_user.message_get', user_id=user.id) }}">{{ user.name }}</a></td>
-                <td>{{ user.email }}</td>
-                <td><a href="{{ url_for('bp_user.chat_get', user_id=user.id) }}">{{ user.name }}</a></td>
+
+                <td><a href="{{ url_for('bp_user.chat_get', user_id=user.id) }}">{{ user.email }}</a></td>
                 <td class="center-content">
                     {% if user.online %}
                         <div class="circle online"></div>
@@ -27,8 +26,10 @@
                         <div class="circle offline"></div>
                     {% endif %}
                 </td>
+
             </tr>
         {% endfor %}
+    <span>Press username to chat</span>
     </table>
 
 {% endblock %}
