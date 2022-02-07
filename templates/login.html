@@ -8,12 +8,20 @@
             </div>
         {% endif %}
     {% endwith %}
+
+    <div class="login_center">
+    <h1>Login</h1>
+
+
     <form action="{{ url_for('bp_open.login_post') }}" method="POST">
 
+    <div class="txt_field">
         <input type="email" name="email" placeholder="Your email address" /> <br />
         <input type="password" name="password" placeholder="Enter password" /> <br />
-
-        <input type="submit" value="Log In">
+    </div>
+    <div class="pass">Forgot Password?</div>
+    <input type="submit" value="Log In">
 
     </form>
+</div>
 {% endblock %}

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}{% endblock %}</title>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+
 
 </head>
 <body>
@@ -26,12 +26,8 @@
                 <span class="sup" id="message-count"></span>
         </a>
     {% else %}
-        <a class="menu-item" href="{{ url_for('bp_open.signup_get') }}">
-            Sign Up
-        </a>
-        <a class="menu-item" href="{{ url_for('bp_open.login_get') }}">
-            Log In
-        </a>
+
+
      {% endif %}
 
     <hr />
