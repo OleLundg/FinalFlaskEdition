@@ -24,7 +24,7 @@ def login_post():
     user = User.query.filter_by(email=email).first()
     if user is None:
         flash('Wrong email or password')
-        return redirect(url_for('bp_open.login_get'))
+        return redirect(url_for('bp_open.index'))
 
     if not argon2.verify(password, user.password):
         flash('Wrong email or password')

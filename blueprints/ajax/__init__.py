@@ -1,5 +1,5 @@
-import json
 from flask import Blueprint, Response
+import json
 from controllers.message_controller import get_unread_msg_count
 
 bp_ajax = Blueprint('bp_ajax', __name__)
@@ -11,5 +11,4 @@ def get_message_count():
     messages = {
         "unreadMessageCount": msg_count
     }
-
     return Response(json.dumps(messages), 200, content_type='application/json')
