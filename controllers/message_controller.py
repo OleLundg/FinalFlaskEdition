@@ -11,14 +11,17 @@ def create_message(title, body, receiver_id):
     from models import Message
     user = current_user
     message = Message(title=title, body=body, sender_id=user.id)
+
     jsonObj = json.dumps(message)
-    aes_encrypt(jsonObj)
+    encr_message = encrypt_message(jsonObj, user.public_key)
 
     receiver_id = int(receiver_id)
     receiver = get_user_by_id(receiver_id)
-    message.receivers.append(receiver)
+    encr_message.receivers.append(receiver)
+    # message.receivers.append(receiver)
     from app import db
-    db.session.add(message)
+    db.session.add(encr_message)
+    # db.session.add(message)
     db.session.commit()
 
 
@@ -40,7 +43,7 @@ def get_unread_msg_count():
 def aes_encrypt(message):
     key = get_random_bytes(16)
     cipher_aes = AES.new(key, AES.MODE_EAX)
-    ciphertext, tag = cipher_aes.encrypt_and_digest(message.encode('utf-8'))
+    ciphertext, tag = cipher_aes.encrypt_and_digest(message)    #.encode('utf-8'))
 
     return key, ciphertext, cipher_aes.nonce, tag
 
@@ -56,7 +59,7 @@ def encrypt_message(message, recipient_rsa_key_name):
     aes_key, aes_cipher, aes_nonce, aes_tag = aes_encrypt(message)
     encrypted_aes_key = rsa_encrypt(recipient_rsa_key_name, aes_key)
 
-    return (encrypted_aes_key, aes_nonce, aes_tag, aes_cipher)
+    return encrypted_aes_key, aes_nonce, aes_tag, aes_cipher
 
 
 def decrypt_message(private_key_name, encrypted_data):

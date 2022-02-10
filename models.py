@@ -13,6 +13,7 @@ class User(db.Model):
     name = db.Column(db.String(150))
     email = db.Column(db.String(150), unique=True)
     password = db.Column(db.String(100))
+    public_key = db.Column(db.String(2048))
     admin = db.Column(db.BOOLEAN, default=False)
     online = db.Column(db.BOOLEAN, default=False)
     sent_messages = db.relationship('Message', backref='sender', lazy=True)

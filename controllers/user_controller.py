@@ -26,8 +26,7 @@ def generate_rsa_keys(key_name, key_size=2048):
     with open(f'./rsa_keys/{key_name}_private.pem', 'wb') as out_file:
         out_file.write(private_key)
     public_key = key.public_key().export_key()
-    with open(f'./rsa_keys/{key_name}_public.pem', 'wb') as out_file:
-        out_file.write(public_key)
+    return public_key
 
 
 def rsa_encrypt(rsa_key_name, message):
