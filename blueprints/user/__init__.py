@@ -5,6 +5,7 @@ from controllers.message_controller import create_message, get_user_messages
 from controllers.user_controller import get_all_but_current_user, get_user_by_id
 import json
 
+
 bp_user = Blueprint('bp_user', __name__)
 
 
@@ -38,7 +39,6 @@ def message_post():
     title = request.form['title']
     body = request.form['body']
     receiver_id = request.form['user_id']
-    print(title)
     create_message(title, body, receiver_id)
     return redirect(url_for('bp_user.user_get'))
 

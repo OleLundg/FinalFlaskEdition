@@ -38,6 +38,7 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(1000))
     body = db.Column(db.Text)
+    public_key = db.Column(db.String(2048))
     read = db.Column(db.BOOLEAN, default=False)
     sent_time = db.Column(db.DateTime, default=datetime.datetime.now())
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
