@@ -1,5 +1,6 @@
 import json
 
+from Crypto.PublicKey import RSA
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from flask_login import current_user
@@ -10,12 +11,19 @@ from controllers.user_controller import get_user_by_id, rsa_encrypt, rsa_decrypt
 def create_message(title, body, receiver_id):
     from models import Message
     user = current_user
-    message = Message(title=title, body=body, sender_id=user.id)
-    jsonObj = json.dumps(message)
-    aes_encrypt(jsonObj)
-
     receiver_id = int(receiver_id)
     receiver = get_user_by_id(receiver_id)
+
+    message1 = title
+    message2 = body
+    # msg1_to_send = json.dumps(message1)
+    # msg2_to_send = json.dumps(message2)
+    public_key = receiver.public_key
+    public_key_pem = RSA.importKey(public_key)
+    encrypt_msg1 = encrypt_message(message1, public_key_pem)
+    encrypt_msg2 = encrypt_message(message2, public_key_pem)
+
+    message = Message(title=str(encrypt_msg1), body=str(encrypt_msg2), sender_id=user.id)
     message.receivers.append(receiver)
     from app import db
     db.session.add(message)
@@ -37,10 +45,10 @@ def get_unread_msg_count():
     return msg_count
 
 
-def aes_encrypt(message):
+def aes_encrypt(msg):
     key = get_random_bytes(16)
     cipher_aes = AES.new(key, AES.MODE_EAX)
-    ciphertext, tag = cipher_aes.encrypt_and_digest(message.encode('utf-8'))
+    ciphertext, tag = cipher_aes.encrypt_and_digest(msg.encode('utf-8'))
 
     return key, ciphertext, cipher_aes.nonce, tag
 
@@ -52,11 +60,11 @@ def aes_decrypt(aes_key, ciphertext, nonce, tag):
     return decrypted_data.decode('utf-8')
 
 
-def encrypt_message(message, recipient_rsa_key_name):
-    aes_key, aes_cipher, aes_nonce, aes_tag = aes_encrypt(message)
+def encrypt_message(msg, recipient_rsa_key_name):
+    aes_key, aes_cipher, aes_nonce, aes_tag = aes_encrypt(msg)
     encrypted_aes_key = rsa_encrypt(recipient_rsa_key_name, aes_key)
 
-    return (encrypted_aes_key, aes_nonce, aes_tag, aes_cipher)
+    return encrypted_aes_key, aes_nonce, aes_tag, aes_cipher
 
 
 def decrypt_message(private_key_name, encrypted_data):
@@ -65,4 +73,3 @@ def decrypt_message(private_key_name, encrypted_data):
     plaintext = aes_decrypt(aes_key, aes_cipher, aes_nonce, aes_tag)
 
     return plaintext
-
