@@ -12,12 +12,12 @@ def index():
     return render_template("index.html")
 
 
-@bp_open.get('/login')
+@bp_open.get('/')
 def login_get():
-    return render_template('login.html')
+    return render_template('index.html')
 
 
-@bp_open.post('/login')
+@bp_open.post('/')
 def login_post():
     email = request.form['email']
     password = request.form['password']
@@ -28,7 +28,7 @@ def login_post():
 
     if not argon2.verify(password, user.password):
         flash('Wrong email or password')
-        return redirect(url_for('bp_open.login_get'))
+        return redirect(url_for('bp_open.index'))
 
     login_user(user)
     user.online = True

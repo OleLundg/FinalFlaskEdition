@@ -37,7 +37,7 @@ p {
     font-size: 23px;
 }
 
-.login_center {
+.login_center, .signup_center {
     margin:0px;
     padding:0;
     position: absolute;
@@ -49,6 +49,8 @@ p {
     background: rgba(0,0,0,.8);
     border-radius: 10px;
 }
+
+
 
 .login_center h1 {
     text-align: center;
@@ -110,23 +112,18 @@ form .txt_field {
 }
 
 
-.signup_center {
-    margin:0px;
-    padding:0;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform:translate(-50%, -50%);
-    width: 400px;
-    height: 300px;
-    background: white;
-    border-radius: 10px;
-}
+
 
 .login_center h1 {
     text-align: center;
     padding: 0 0 20px 0;
     border-bottom: 1px solid silver;
+}
+.signup_center h1 {
+    position: fixed;
+    font-size: 100px;
+    top: -75%;
+    text-align: center;
 }
 
 .signup_center form {
