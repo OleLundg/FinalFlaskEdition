@@ -49,13 +49,15 @@ def signup_post():
     email = request.form.get('email')
     password = request.form['password']
     hashed_password = argon2.using(rounds=10).hash(password)
-
+    from controllers.user_controller import generate_rsa_keys
+    public_key = generate_rsa_keys(name)
     user = User.query.filter_by(email=email).first()
+
     if user:
         flash("Email address is already in use")
         return redirect(url_for('bp_open.signup_get'))
 
-    new_user = User(name=name, email=email, password=hashed_password)
+    new_user = User(name=name, email=email, password=hashed_password, public_key=public_key)
 
     from app import db
     db.session.add(new_user)

@@ -5,13 +5,65 @@
 {% endblock %}
 
 {% block content %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="/static/js/rsa.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <h1>Sending a message to {{ receiver.name }}</h1>
+
     <form action="{{ url_for('bp_user.message_post') }}" method="POST">
-        <input class="message_title" type="text" name="title" placeholder="Message Title" /> <br />
-        <input type="hidden" name="user_id" value="{{ receiver.id }}">
-        <textarea name="body" placeholder="Message Body"></textarea> <br />
-        <input class="send-button" type="submit" value="Send" />
+        <input class="message_title" id="title" type="text" placeholder="Message Title" /> <br />
+        <input type="hidden" name="user_id" id="user_id" value="{{ receiver.id }}"/>
+        <textarea id="body" placeholder="Message Body"></textarea> <br />
+        <input type="hidden" name="cipher_title" id="cipher_title"/>
+        <input type="hidden" name="cipher_body" id="cipher_body">
+        <input type="hidden" name="encrypted_aes" id="encrypted_aes"/>
+        <input onclick="rsaEncrypt()" class="send-button" type="submit" value="send" />
     </form>
 
+
+{% endblock %}
+{% block scripts %}
+    <script>
+        let encrypted_t;
+        let encrypted_b
+        let key;
+        let public_key;
+
+        function encrypt() {
+            let message_title = document.getElementById("title").value;
+            let message_body = document.getElementById("body").value;
+
+            encrypted_t = CryptoJS.AES.encrypt(message_title, key);
+            encrypted_b = CryptoJS.AES.encrypt(message_body, key);
+            document.getElementById("cipher_title").innerHTML = encrypted_t;
+            document.getElementById("cipher_body").innerHTML = encrypted_b;
+        }
+
+        function generateKey() {
+            key = CryptoJS.lib.WordArray.random(16).toString();
+            return key
+        }
+
+        function rsaEncrypt() {
+            // Get the message to encrypt
+            key = generateKey()
+
+            encrypt()
+
+            // Create a RSA object
+            let rsaEncrypt = new JSEncrypt();
+            public_key = {{ receiver_publickey }}
+            // Set the public key we want to use for encryption
+            rsaEncrypt.setPublicKey();
+            // Encrypt the message
+            let encrypted_aes = rsaEncrypt.encrypt(public_key);
+            // Show the encrypted message on the page
+            document.getElementById("encrypted_aes").innerHTML = encrypted_aes;
+
+
+
+        }
+
+    </script>
 {% endblock %}
