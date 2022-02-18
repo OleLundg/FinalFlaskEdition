@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request, jsonify
 from flask_login import logout_user, login_required, current_user
 
-from controllers.message_controller import create_message, get_user_messages
-from controllers.user_controller import get_all_but_current_user, get_user_by_id
+from controllers.message_controller import create_message, get_user_messages, decrypt_message
+from controllers.user_controller import get_all_but_current_user, get_user_by_id, get_public_key_by_id
 import json
 
 
@@ -34,12 +34,14 @@ def message_get(user_id):
     return render_template('message.html', receiver=receiver)
 
 
-@bp_user.post('/message')
+@bp_user.post('/message/')
 def message_post():
-    title = request.form['title']
-    body = request.form['body']
+    data = request.get_json()
+    data = jsonify(data)
+    title = data.get_data()
     receiver_id = request.form['user_id']
-    create_message(title, body, receiver_id)
+
+    create_message(title, title, receiver_id)
     return redirect(url_for('bp_user.user_get'))
 
 
@@ -49,18 +51,15 @@ def mailbox_get():
     return render_template('mailbox.html', messages=messages)
 
 
-@bp_user.get('/api')
-def api_get():
-    person = {
-        'name': 'Pelle',
-        'age': 34
-    }
-    return json.dumps(person)
-
-
-@bp_user.get('/chat/<user_id>')
-def chat_get(user_id):
-    chat_server_ip = request.remote_addr
+@bp_user.get('/user_pubkey/<user_id>')
+def pubkey_get(user_id):
     user_id = int(user_id)
-    chat_with = get_user_by_id(user_id)
-    return render_template('chat.html', ip=chat_server_ip, chat_user=chat_with)
+    pubkey = get_public_key_by_id(user_id)
+    return pubkey
+
+
+@bp_user.get('/messages')
+def get_messages():
+    messages = get_user_messages()
+    msg = messages[0]
+    return json.dumps(str(msg))

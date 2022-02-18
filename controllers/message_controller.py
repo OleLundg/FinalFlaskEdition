@@ -13,17 +13,9 @@ def create_message(title, body, receiver_id):
     user = current_user
     receiver_id = int(receiver_id)
     receiver = get_user_by_id(receiver_id)
+    body = body
+    message = Message(body=body, sender_id=user.id)
 
-    message1 = title
-    message2 = body
-    # msg1_to_send = json.dumps(message1)
-    # msg2_to_send = json.dumps(message2)
-    public_key = receiver.public_key
-    public_key_pem = RSA.importKey(public_key)
-    encrypt_msg1 = encrypt_message(message1, public_key_pem)
-    encrypt_msg2 = encrypt_message(message2, public_key_pem)
-
-    message = Message(title=str(encrypt_msg1), body=str(encrypt_msg2), sender_id=user.id)
     message.receivers.append(receiver)
     from app import db
     db.session.add(message)

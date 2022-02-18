@@ -5,6 +5,9 @@
 {% endblock %}
 
 {% block content %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="/static/js/rsa.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <h1 id="main-heading">Mailbox</h1>
 
     <table>
@@ -29,21 +32,19 @@
     </table>
 
 
-        <p>Upload private key</p>
-        <input type="file" name="private_key" id="priv-file" enctype="multipart/form-data" />
-        <button onclick="readPrivateKey()">Read Private Key</button><span id="priv-loaded"></span>
+    <p>Upload private key</p>
+    <input type="file" name="private_key" id="priv-file" enctype="multipart/form-data" />
+    <button onclick="readPrivateKey()">Read Private Key</button><span id="priv-loaded"></span>
 
-        <br /> <br />
-        <button onclick="decryptRSA()">Decrypt the Message</button>
+    <br /> <br />
+    <button onclick="getMsgFromServer()">Decrypt the Message</button>
 
-        <p id="decrypted"></p>
+    <p></p>
 
-
-    <script src="/static/js/rsa.js"></script>
+{% endblock %}
+{% block scripts %}
 
     <script>
-
-
         let privateKey;
 
         function readPrivateKey() {
@@ -54,42 +55,80 @@
             reader.onloadend = function (event) {
                 privateKey = event.target.result;
                 privateKey = privateKey.replace(/(\r\n|\n|\r)/gm, "");
-                document.getElementById("priv-loaded").innerHTML = "Private key loaded";
+               // getMsgFromServer(); //Retrieve all encrypted messages
+
             };
+
             reader.readAsText(file);
-
         }
 
-       //async function decryptRSA() {
-       //    const keyObject = crypto.KeyObject.from(privateKey);
-       //    let ciphertxt = crypto.privateDecrypt(keyObject, {{ messages.title }})
-       //    console.log(ciphertxt)
-       //}
-
-        function rsaDecrypt() {
-            // Get the encrypted message
-            let cipher = document.getElementById("encrypted").innerHTML;
-            console.log(cipher)
-            // cipher = btoa(cipher);
-            // Create a RSA object
-            let rsaDecrypt = new JSEncrypt();
-            // Set the private key we want to use for decryption
-            rsaDecrypt.setPrivateKey(privateKey);
-            console.log()
-            // Decrypt the message
-            let plainText = rsaDecrypt.decrypt(cipher);
-            console.log(plainText);
-            // Show the decryted message
-            document.getElementById("decrypted").innerHTML = plainText;
+        function createRowElement(text, tag) {
+            const title = document.createElement(tag);
+            title.innerText = text;
+            document.body.appendChild(title);
         }
 
-        function decrypt() {
-            let clearText = CryptoJS.AES.decrypt(encrypted, key);
-            document.getElementById("clear").value = clearText.toString(CryptoJS.enc.Utf8);
+        function decryptMessage(encryptedMessages, size) {
+
+            createRowElement("", 'hr')
+            for (let i = 0; i < size; i++) {
+                let decrypted_aes_key = rsaDecryptAesKey((encryptedMessages[i].aes_key), privateKey);
+                let decrypted_title = decryptData(encryptedMessages[i].title, decrypted_aes_key);
+                let decrypted_body = decryptData(encryptedMessages[i].body, decrypted_aes_key);
+
+                createRowElement(decrypted_title, 'td')
+                createRowElement("", 'br')
+                createRowElement(decrypted_body, 'td')
+                createRowElement("", 'br')
+                createRowElement("", 'hr')
+
+            }
         }
 
-    
+
+        function decryptData(encrypted_message, key) {
+            let clearText = CryptoJS.AES.decrypt(encrypted_message, key);
+            return clearText.toString(CryptoJS.enc.Utf8);
+        }
+
+        function getMsgFromServer() {
+
+            const xhttp = new XMLHttpRequest();
+            xhttp.onload = function () {
+                let encryptedMessages = JSON.parse(this.responseText);
+                // encryptedMessages = JSON.stringify(encryptedMessages)
+                let size = Object.keys(encryptedMessages).length;
+                decryptMessage(encryptedMessages, size)
+            }
+
+            xhttp.open('GET', "http://127.0.0.1:5000/messages")
+            xhttp.send()
+        }
+       // function getServerMsgFromServer() {
+       //
+       //     const xhttp = new XMLHttpRequest();
+       //     xhttp.onload = function () {
+       //         let encryptedMessages = JSON.parse(this.responseText);
+       //         //encryptedMessages = JSON.stringify(encryptedMessages)
+       //         let size = Object.keys(encryptedMessages).length;
+       //         decryptMessage(encryptedMessages, size)
+       //     }
+       //
+       //
+       //     xhttp.open('GET', "http://127.0.0.1:5000/server-messages")
+       //     xhttp.send()
+       // }
+
+
+        function rsaDecryptAesKey(aes_key, private_rsa_key) {
+                let rsaEncrypt = new JSEncrypt();
+
+                rsaEncrypt.setPrivateKey(private_rsa_key);
+
+                let decryptedAESKey = rsaEncrypt.decrypt(aes_key);
+                return decryptedAESKey
+        }
+
 
     </script>
 {% endblock %}
-

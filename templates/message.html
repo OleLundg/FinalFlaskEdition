@@ -5,13 +5,64 @@
 {% endblock %}
 
 {% block content %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="/static/js/rsa.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <h1>Sending a message to {{ receiver.name }}</h1>
+
     <form action="{{ url_for('bp_user.message_post') }}" method="POST">
-        <input class="message_title" type="text" name="title" placeholder="Message Title" /> <br />
-        <input type="hidden" name="user_id" value="{{ receiver.id }}">
-        <textarea name="body" placeholder="Message Body"></textarea> <br />
-        <input class="send-button" type="submit" value="Send" />
+    <input class="message_title" type="text" id="title" placeholder="Message Title" /> <br />
+    <input type="hidden" name="user_id" value="{{ receiver.id }}">
+    <textarea id="body" placeholder="Message Body"></textarea> <br />
+    <input onclick="encryptMessage()" class="send-button" type="submit" value="Send" />
     </form>
 
+
+{% endblock %}
+{% block scripts %}
+    <script>
+     let key;
+        let public_key
+
+
+        function encryptMessage() {
+            const xhttp = new XMLHttpRequest();
+
+            xhttp.onload = function() {
+                public_key = JSON.parse(this.responseText);
+                key = CryptoJS.lib.WordArray.random(16).toString(); //Creating an AES key
+
+                let message = document.getElementById("msg_content").value; //Extract values
+                let title = document.getElementById("title_content").value; //Extract values
+
+                let encrypted_title = CryptoJS.AES.encrypt(title, key); //Encrypt title with aes
+                let encrypted_body = CryptoJS.AES.encrypt(message, key);
+                let recipient_id = document.getElementById("user_id").value;
+
+                let AESKey = encryptAESKey(public_key);  //Encrypt AES with RSA key
+
+
+                let data = {title: String(encrypted_title), bdy: String(encrypted_body), aes_key: String(AESKey), user_id: String(recipient_id)};
+                fetch("http://127.0.0.1:5000/message", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+            }
+
+            xhttp.open('GET', "http://127.0.0.1:5000/user_pubkey/{{ receiver.id }}")
+            xhttp.send()
+            // Until fixed location.reload()
+
+        }
+
+        function encryptAESKey() {
+            let rsaEncrypt = new JSEncrypt();
+
+            rsaEncrypt.setPublicKey(public_key);
+            let encryptedAesKey = rsaEncrypt.encrypt(key);
+            return encryptedAesKey;
+        }
+    </script>
 {% endblock %}
