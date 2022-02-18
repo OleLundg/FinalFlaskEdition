@@ -1,6 +1,4 @@
-from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
-from Crypto.PublicKey.RSA import RsaKey
 from flask_login import current_user
 
 
@@ -33,16 +31,3 @@ def generate_rsa_keys(key_name, key_size=2048):
     public_key = key.public_key().export_key()
     return public_key
 
-
-def rsa_encrypt(rsa_key_name, msg):
-    # recipient_key = RSA.importKey(open(f'./rsa_keys/{rsa_key_name}.pem').read())
-    # recipient_key_pem = RSA.importKey(rsa_key_name)
-    cipher_rsa = PKCS1_OAEP.new(rsa_key_name)
-    return cipher_rsa.encrypt(msg)
-
-
-def rsa_decrypt(cipher, recipient_key):
-    if type(recipient_key) != RsaKey:
-        recipient_key = RSA.importKey(open(f'./rsa_keys/{recipient_key}.pem').read())
-    cipher_rsa = PKCS1_OAEP.new(recipient_key)
-    return cipher_rsa.decrypt(cipher)

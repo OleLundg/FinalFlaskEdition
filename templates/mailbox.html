@@ -8,6 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
     <script src="/static/js/rsa.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+
     <h1 id="main-heading">Mailbox</h1>
 
     <table>
@@ -25,7 +27,7 @@
                 {% else %}
                     <td>-</td>
                 {% endif %}
-                <td id="encrypted">{{ message.title }}</td>
+                <td id="encrypted">{{ "Title encrypted" }}</td>
                 <td >{{ "Body encrypted" }}</td>
             </tr>
         {% endfor %}
@@ -35,11 +37,11 @@
     <p>Upload private key</p>
     <input type="file" name="private_key" id="priv-file" enctype="multipart/form-data" />
     <button onclick="readPrivateKey()">Read Private Key</button><span id="priv-loaded"></span>
+    <button onclick="rsaDecrypt()">Decrypt message</button>
 
     <br /> <br />
-    <button onclick="getMsgFromServer()">Decrypt the Message</button>
-
-    <p></p>
+    <p id="decrypted_t"></p>
+    <p id="decrypted_b"></p>
 
 {% endblock %}
 {% block scripts %}
@@ -55,80 +57,34 @@
             reader.onloadend = function (event) {
                 privateKey = event.target.result;
                 privateKey = privateKey.replace(/(\r\n|\n|\r)/gm, "");
-               // getMsgFromServer(); //Retrieve all encrypted messages
 
+                document.getElementById("priv-loaded").innerHTML = "Private key loaded";
             };
 
             reader.readAsText(file);
         }
 
-        function createRowElement(text, tag) {
-            const title = document.createElement(tag);
-            title.innerText = text;
-            document.body.appendChild(title);
+        function rsaDecrypt() {
+
+            // Create a RSA object
+            let rsaEncrypt = new JSEncrypt();
+            // Set the private key we want to use for decryption
+            rsaEncrypt.setPrivateKey(privateKey);
+            // Decrypt the message
+            let aes_decrypt = rsaEncrypt.decrypt({{ aes_rsa }});
+
+            decrypt(aes_decrypt)
+
+
         }
 
-        function decryptMessage(encryptedMessages, size) {
+        function decrypt(key) {
+            let clearText_t = CryptoJS.AES.decrypt({{ messages.title }}, key);
+            let clearText_b = CryptoJS.AES.decrypt({{ messages.body }}, key)
+            document.getElementById("decrypted_t").innerHTML = clearText_t.toString();
+            document.getElementById("decrypted_b").innerHTML = clearText_b.toString();
 
-            createRowElement("", 'hr')
-            for (let i = 0; i < size; i++) {
-                let decrypted_aes_key = rsaDecryptAesKey((encryptedMessages[i].aes_key), privateKey);
-                let decrypted_title = decryptData(encryptedMessages[i].title, decrypted_aes_key);
-                let decrypted_body = decryptData(encryptedMessages[i].body, decrypted_aes_key);
-
-                createRowElement(decrypted_title, 'td')
-                createRowElement("", 'br')
-                createRowElement(decrypted_body, 'td')
-                createRowElement("", 'br')
-                createRowElement("", 'hr')
-
-            }
         }
-
-
-        function decryptData(encrypted_message, key) {
-            let clearText = CryptoJS.AES.decrypt(encrypted_message, key);
-            return clearText.toString(CryptoJS.enc.Utf8);
-        }
-
-        function getMsgFromServer() {
-
-            const xhttp = new XMLHttpRequest();
-            xhttp.onload = function () {
-                let encryptedMessages = JSON.parse(this.responseText);
-                // encryptedMessages = JSON.stringify(encryptedMessages)
-                let size = Object.keys(encryptedMessages).length;
-                decryptMessage(encryptedMessages, size)
-            }
-
-            xhttp.open('GET', "http://127.0.0.1:5000/messages")
-            xhttp.send()
-        }
-       // function getServerMsgFromServer() {
-       //
-       //     const xhttp = new XMLHttpRequest();
-       //     xhttp.onload = function () {
-       //         let encryptedMessages = JSON.parse(this.responseText);
-       //         //encryptedMessages = JSON.stringify(encryptedMessages)
-       //         let size = Object.keys(encryptedMessages).length;
-       //         decryptMessage(encryptedMessages, size)
-       //     }
-       //
-       //
-       //     xhttp.open('GET', "http://127.0.0.1:5000/server-messages")
-       //     xhttp.send()
-       // }
-
-
-        function rsaDecryptAesKey(aes_key, private_rsa_key) {
-                let rsaEncrypt = new JSEncrypt();
-
-                rsaEncrypt.setPrivateKey(private_rsa_key);
-
-                let decryptedAESKey = rsaEncrypt.decrypt(aes_key);
-                return decryptedAESKey
-        }
-
 
     </script>
 {% endblock %}

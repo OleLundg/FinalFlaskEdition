@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, request
 from flask_login import logout_user, login_required, current_user
 
-from controllers.message_controller import create_message, get_user_messages, decrypt_message
+from controllers.message_controller import create_message, get_user_messages, get_aes_message
 from controllers.user_controller import get_all_but_current_user, get_user_by_id, get_public_key_by_id
 import json
 
@@ -31,35 +31,29 @@ def logout_get():
 def message_get(user_id):
     user_id = int(user_id)
     receiver = get_user_by_id(user_id)
-    return render_template('message.html', receiver=receiver)
+    receiver_publickey = get_public_key_by_id(receiver.id)
+    return render_template('message.html', receiver=receiver, receiver_publickey=receiver_publickey)
 
 
-@bp_user.post('/message/')
+@bp_user.post('/message')
 def message_post():
-    data = request.get_json()
-    data = jsonify(data)
-    title = data.get_data()
+    title = request.form['cipher_title']
+    body = request.form['cipher_body']
+    aes_rsa = request.form['encrypted_aes']
     receiver_id = request.form['user_id']
-
-    create_message(title, title, receiver_id)
+    create_message(title, body, receiver_id, aes_rsa)
     return redirect(url_for('bp_user.user_get'))
 
 
 @bp_user.get('/mailbox')
 def mailbox_get():
     messages = get_user_messages()
-    return render_template('mailbox.html', messages=messages)
-
-
-@bp_user.get('/user_pubkey/<user_id>')
-def pubkey_get(user_id):
-    user_id = int(user_id)
-    pubkey = get_public_key_by_id(user_id)
-    return pubkey
+    aes_rsa = get_aes_message()
+    return render_template('mailbox.html', messages=messages, aes_rsa=aes_rsa)
 
 
 @bp_user.get('/messages')
 def get_messages():
     messages = get_user_messages()
     msg = messages[0]
-    return json.dumps(str(msg))
+    return render_template('Mailbox.html')
